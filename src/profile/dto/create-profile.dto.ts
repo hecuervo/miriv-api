@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import {
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsInt,
@@ -54,7 +55,7 @@ export class CreateProfileDto {
   email: string;
 
   @IsString()
-  @IsUnique({ tableName: 'profile', column: 'mobile' })
+  @IsUnique({ tableName: 'profile', column: 'mobile', message: 'celular ya existe' })
   @IsNotEmpty()
   @Matches(/^[0-9]{10}$/, {
     message: 'Mobile number invalid',
@@ -63,6 +64,14 @@ export class CreateProfileDto {
 
   @IsEnum(['ADMIN', 'AGENTE', 'MIRIV', 'ARRENDADOR', 'FIADOR', 'ARRENDATARIO'])
   role: string = 'AGENTE';
+
+  @IsString()
+  @IsOptional()
+  photo: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive: boolean = true;
 
   @IsInt()
   @IsOptional()

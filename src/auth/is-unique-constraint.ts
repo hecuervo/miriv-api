@@ -2,10 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface, registerDecorator } from "class-validator";
 import { EntityManager } from "typeorm";
 
+
+
 // decorator options interface
 export type IsUniqeInterface = {
   tableName: string,
-  column: string
+  column: string,
+  message?: string
 }
 
 @ValidatorConstraint({ name: 'IsUniqueConstraint', async: true })
@@ -31,7 +34,10 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
   defaultMessage(validationArguments?: ValidationArguments): string {
     // return custom field message
     const field: string = validationArguments.property
-    return `${field} is already exist`
+    if (validationArguments.constraints[0].message) {
+      return validationArguments.constraints[0].message;
+    };
+    return `${field} ya existe`
   }
 }
 

@@ -22,7 +22,23 @@ export class DocumentsCatalogService {
   }
 
   async findAll(): Promise<DocumentsCatalog[]> {
-    return await this.repository.find();
+    return await this.repository.find({
+      select: {
+        createdBy: {
+          id: true,
+          name: true,
+        },
+        modifiedBy: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        createdBy: true,
+        modifiedBy: true,
+      },
+      order: { section: 'ASC', name: 'ASC' }
+    });
   }
 
   async findOne(id: number): Promise<DocumentsCatalog> {
@@ -49,13 +65,13 @@ export class DocumentsCatalogService {
 
   async update(id: number, updateDocumentsCatalogDto: UpdateDocumentsCatalogDto): Promise<DocumentsCatalog> {
     const modifiedBy = await this.usersService.findOne(updateDocumentsCatalogDto.modifiedById);
-    const user = await this.repository.findOneBy({ id });
-    if (!user) {
+    const item = await this.repository.findOneBy({ id });
+    if (!item) {
       throw new NotFoundException('Item with ID ${id} not found');
     }
-    Object.assign(user, updateDocumentsCatalogDto);
-    user.modifiedBy = modifiedBy;
-    return await this.repository.save(user);
+    Object.assign(item, updateDocumentsCatalogDto);
+    item.modifiedBy = modifiedBy;
+    return await this.repository.save(item);
   }
 
   async remove(id: number) {

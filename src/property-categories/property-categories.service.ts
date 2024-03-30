@@ -1,26 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateStatusPolicyNumberDto } from './dto/create-status-policy-number.dto';
-import { UpdateStatusPolicyNumberDto } from './dto/update-status-policy-number.dto';
+import { CreatePropertyCategoryDto } from './dto/create-property-category.dto';
+import { UpdatePropertyCategoryDto } from './dto/update-property-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StatusPolicyNumber } from './entities/status-policy-number.entity';
+import { PropertyCategory } from './entities/property-category.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
-export class StatusPolicyNumberService {
-
+export class PropertyCategoriesService {
   constructor(
-    @InjectRepository(StatusPolicyNumber)
-    private readonly repository: Repository<StatusPolicyNumber>,
-    private usersService: UsersService
-  ) { }
+    @InjectRepository(PropertyCategory)
+    private readonly repository: Repository<PropertyCategory>,
+    private usersService: UsersService,
+  ) {}
 
-  async create(createStatusPolicyNumberDto: CreateStatusPolicyNumberDto): Promise<StatusPolicyNumber> {
-    const user = await this.usersService.findOne(createStatusPolicyNumberDto.createdById);
-    return await this.repository.save({ ...createStatusPolicyNumberDto, createdBy: user, modifiedById: user });
+  async create(
+    createPropertyCategoryDto: CreatePropertyCategoryDto,
+  ): Promise<PropertyCategory> {
+    const user = await this.usersService.findOne(
+      createPropertyCategoryDto.createdById,
+    );
+    const propertyCategory = await this.repository.save({
+      ...createPropertyCategoryDto,
+      createdBy: user,
+      modifiedById: user,
+    });
+    return this.findOne(propertyCategory.id);
   }
 
-  async findAll(): Promise<StatusPolicyNumber[]> {
+  async findAll(): Promise<PropertyCategory[]> {
     return await this.repository.find({
       select: {
         createdBy: {
@@ -39,7 +47,7 @@ export class StatusPolicyNumberService {
     });
   }
 
-  async findOne(id: number): Promise<StatusPolicyNumber> {
+  async findOne(id: number): Promise<PropertyCategory> {
     return await this.repository.findOne({
       where: {
         id,
@@ -61,15 +69,21 @@ export class StatusPolicyNumberService {
     });
   }
 
-  async update(id: number, updateStatusPolicyNumberDto: UpdateStatusPolicyNumberDto) {
-    const modifiedBy = await this.usersService.findOne(updateStatusPolicyNumberDto.modifiedById);
+  async update(
+    id: number,
+    updatePropertyCategoryDto: UpdatePropertyCategoryDto,
+  ) {
+    const modifiedBy = await this.usersService.findOne(
+      updatePropertyCategoryDto.modifiedById,
+    );
     const item = await this.repository.findOneBy({ id });
     if (!item) {
       throw new NotFoundException('Item with ID ${id} not found');
     }
-    Object.assign(item, updateStatusPolicyNumberDto);
+    Object.assign(item, updatePropertyCategoryDto);
     item.modifiedBy = modifiedBy;
-    return await this.repository.save(item);
+    await this.repository.save(item);
+    return this.findOne(id);
   }
 
   async remove(id: number) {

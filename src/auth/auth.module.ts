@@ -9,12 +9,16 @@ import { AuthGuard } from './auth.guard';
 import { User } from 'src/users/entities/user.entity';
 import { ProfileModule } from 'src/profile/profile.module';
 import { UserTokenModule } from 'src/user-token/user-token.module';
+import { StorageModule } from 'src/storage/storage.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
     UsersModule,
     ProfileModule,
     UserTokenModule,
+    StorageModule,
+    EmailModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,

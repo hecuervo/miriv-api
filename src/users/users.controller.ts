@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -7,8 +7,8 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('role') role: string) {
+    return this.usersService.findAll(role);
   }
 
   @Get(':id')

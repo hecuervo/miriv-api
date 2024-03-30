@@ -15,13 +15,16 @@ import { UserDevicesModule } from './user-devices/user-devices.module';
 import { StatusPolicyNumberModule } from './status-policy-number/status-policy-number.module';
 import { UserTokenModule } from './user-token/user-token.module';
 import { IsUniqueConstraint } from './auth/is-unique-constraint';
-
+import { EmailModule } from './email/email.module';
+import { StorageModule } from './storage/storage.module';
+import { MediaModule } from './media/media.module';
+import { PropertyCategoriesModule } from './property-categories/property-categories.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [config]
+      load: [config],
     }),
     UsersModule,
     DatabaseModule,
@@ -33,6 +36,10 @@ import { IsUniqueConstraint } from './auth/is-unique-constraint';
     UserDevicesModule,
     StatusPolicyNumberModule,
     UserTokenModule,
+    EmailModule,
+    StorageModule,
+    MediaModule,
+    PropertyCategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService, IsUniqueConstraint],

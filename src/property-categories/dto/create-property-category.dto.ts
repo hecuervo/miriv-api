@@ -5,7 +5,7 @@ import {
   IsString,
   IsInt,
 } from 'class-validator';
-export class CreateStatusPolicyNumberDto {
+export class CreatePropertyCategoryDto {
   @IsString()
   @IsNotEmpty()
   name: string;

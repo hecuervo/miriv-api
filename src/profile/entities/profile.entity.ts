@@ -36,6 +36,9 @@ export class Profile {
   @Column({ type: 'varchar', length: 10, unique: true })
   mobile: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  photo: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

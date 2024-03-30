@@ -6,52 +6,99 @@ import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from 'src/email/email.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserTokenService {
   constructor(
     @InjectRepository(UserToken)
     private readonly repository: Repository<UserToken>,
-    private usersService: UsersService
-  ) { }
+    private usersService: UsersService,
+    private configService: ConfigService,
+    private emailService: EmailService,
+    private jwtService: JwtService,
+  ) {}
+
+  async save(userToken: UserToken): Promise<string> {
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hash = await bcrypt.hash(resetToken, 10);
+    userToken.token = hash;
+    userToken.expirationDate = new Date(Date.now() + 3600000);
+    await this.repository.save(userToken);
+    return resetToken;
+  }
 
   async requestPasswordReset(email: string) {
     const existingUser = await this.usersService.findOneByEmail(email);
     if (!existingUser) {
       throw new NotFoundException('Usuario no encontrado');
     }
-    const token = await this.repository.findOneBy({ user: { id: existingUser.id } });
+    const token = await this.repository.findOneBy({
+      user: { id: existingUser.id },
+    });
 
-    if (token)
-      await this.repository.remove(token);
+    if (token) await this.repository.remove(token);
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const hash = await bcrypt.hash(resetToken, 10);
+    const newUserToken = new UserToken();
+    newUserToken.user = existingUser;
 
-    await this.repository.save({ user: existingUser, token: hash, expirationDate: new Date(Date.now() + 3600000) });
+    const userToken = await this.save(newUserToken);
+    // Send email with reset link
+    const siteUrl = this.configService.get('SITE_URL');
+    const resetLink = `${siteUrl}/authentication/reset-password/${existingUser.id}/${userToken}`;
+    this.emailService.sendEmailResetPasswordRequest(
+      existingUser.email,
+      existingUser.name,
+      resetLink,
+    );
     return {
       id: existingUser.id,
-      token: resetToken
-    }
+      token: userToken,
+    };
   }
 
   async resetPassword(userId: number, token: string, password: string) {
-    const tokenEntity = await this.repository.findOne({ where: { user: { id: userId } } });
+    const tokenEntity = await this.repository.findOne({
+      where: { user: { id: userId } },
+    });
     if (!tokenEntity) {
-      throw new NotFoundException('Token de restablecimiento de contraseña no válido o caducado');
+      throw new NotFoundException(
+        'Token de restablecimiento de contraseña no válido o caducado',
+      );
     }
 
     const isMatch: boolean = bcrypt.compareSync(token, tokenEntity.token);
     if (!isMatch) {
-      throw new NotFoundException('Token de restablecimiento de contraseña no válido o caducado');
+      throw new NotFoundException(
+        'Token de restablecimiento de contraseña no válido o caducado',
+      );
     }
 
     const user = await this.usersService.findOne(userId);
     const newPassword = await bcrypt.hash(password, 10);
     user.password = newPassword;
+    user.isEmailVerified = true;
+    user.lastLogin = new Date();
+    await this.usersService.update(user.id, user);
+
     await this.repository.remove(tokenEntity);
-    return await this.usersService.update(user.id, user);
 
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      mobile: user.mobile,
+      role: user.role,
+    };
+
+    return {
+      id: user.id,
+      role: user.role,
+      name: user.name,
+      isActive: user.isActive,
+      profile: user.profile,
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
-
 }

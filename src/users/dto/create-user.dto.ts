@@ -45,15 +45,19 @@ export class CreateUserDto {
   @IsOptional()
   isActive: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isEmailVerified: boolean;
+
   @IsInt()
   @IsNotEmpty()
   profileId: number;
 
   @IsInt()
   @IsOptional()
-  createdBy: number;
+  createdById: number;
 
   @IsInt()
   @IsOptional()
-  modifiedBy: number;
+  modifiedById: number;
 }

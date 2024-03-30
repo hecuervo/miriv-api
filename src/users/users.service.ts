@@ -8,16 +8,21 @@ import { Profile } from 'src/profile/entities/profile.entity';
 
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
-    private readonly usersRepository: Repository<User>
-  ) { }
-
+    private readonly usersRepository: Repository<User>,
+  ) {}
 
   async create(createUserDto: CreateUserDto, profile: Profile) {
-
-    return await this.usersRepository.save({ ...createUserDto, profile });
+    const user = await this.usersRepository.findOneBy({
+      id: createUserDto.createdById,
+    });
+    return await this.usersRepository.save({
+      ...createUserDto,
+      profile: profile,
+      createdBy: user,
+      modifiedBy: user,
+    });
   }
 
   async findOneByMobile(mobile: string): Promise<User> {
@@ -28,12 +33,66 @@ export class UsersService {
     return await this.usersRepository.findOneBy({ email, isActive: true });
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.usersRepository.find({ relations: ['profile'] });
+  async findOneByEmailMobile(username: string): Promise<User> {
+    return await this.usersRepository.findOne({
+      where: [
+        { email: username, isActive: true },
+        { mobile: username, isActive: true },
+      ],
+      relations: ['profile'],
+    });
+  }
+
+  async findAll(role: string): Promise<User[]> {
+    return await this.usersRepository.find({
+      where: { role },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdBy: {
+          id: true,
+          name: true,
+        },
+        modifiedBy: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        createdBy: true,
+        modifiedBy: true,
+        profile: true,
+      },
+      order: { createdAt: 'desc' },
+    });
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.usersRepository.findOne({ relations: ['profile'], where: { id } });
+    return await this.usersRepository.findOne({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdBy: {
+          id: true,
+          name: true,
+        },
+        modifiedBy: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        properties: true,
+        createdBy: true,
+        modifiedBy: true,
+        profile: true,
+      },
+    });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
