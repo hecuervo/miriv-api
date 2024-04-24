@@ -4,11 +4,17 @@ import {
   IsOptional,
   IsString,
   IsInt,
+  IsEnum,
 } from 'class-validator';
+
 export class CreateDocumentsCatalogDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
   @IsString()
   @IsNotEmpty()
@@ -18,7 +24,7 @@ export class CreateDocumentsCatalogDto {
   @IsOptional()
   maxSize: number;
 
-  @IsString()
+  @IsEnum(['AGENTE', 'ARRENDADOR', 'PROPIEDAD', 'FIADOR', 'ARRENDATARIO'])
   @IsNotEmpty()
   section: string;
 

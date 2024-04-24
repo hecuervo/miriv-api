@@ -17,16 +17,24 @@ export class UsersService {
     const user = await this.usersRepository.findOneBy({
       id: createUserDto.createdById,
     });
+    const mainUser = await this.usersRepository.findOneBy({
+      id: createUserDto.mainUserId,
+    });
     return await this.usersRepository.save({
       ...createUserDto,
       profile: profile,
       createdBy: user,
       modifiedBy: user,
+      mainUser: mainUser,
     });
   }
 
   async findOneByMobile(mobile: string): Promise<User> {
     return await this.usersRepository.findOneBy({ mobile, isActive: true });
+  }
+
+  async findOneById(id: number): Promise<User> {
+    return await this.usersRepository.findOneBy({ id, isActive: true });
   }
 
   async findOneByEmail(email: string): Promise<User> {
@@ -43,14 +51,28 @@ export class UsersService {
     });
   }
 
-  async findAll(role: string): Promise<User[]> {
+  async findAll(
+    role: string,
+    createdById?: number,
+    tenantId?: number,
+  ): Promise<User[]> {
     return await this.usersRepository.find({
-      where: { role },
+      where: {
+        role,
+        ...(createdById && { createdBy: { id: createdById } }),
+        ...(tenantId && { mainUser: { id: tenantId } }),
+      },
       select: {
         id: true,
         name: true,
         role: true,
         isActive: true,
+        isEmailVerified: true,
+        isVerified: true,
+        mainUser: {
+          id: true,
+          name: true,
+        },
         createdBy: {
           id: true,
           name: true,
@@ -64,6 +86,7 @@ export class UsersService {
         createdBy: true,
         modifiedBy: true,
         profile: true,
+        mainUser: true,
       },
       order: { createdAt: 'desc' },
     });
@@ -77,6 +100,13 @@ export class UsersService {
         name: true,
         role: true,
         isActive: true,
+        isVerified: true,
+        isEmailVerified: true,
+        mainUser: {
+          id: true,
+          name: true,
+        },
+
         createdBy: {
           id: true,
           name: true,
@@ -91,6 +121,7 @@ export class UsersService {
         createdBy: true,
         modifiedBy: true,
         profile: true,
+        mainUser: true,
       },
     });
   }
@@ -105,10 +136,79 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const user = await this.usersRepository.findOneBy({ id });
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['profile', 'files', 'properties'],
+    });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-    return await this.usersRepository.remove(user);
+    if (user.properties.length > 0) {
+      throw new NotFoundException(
+        'No se puede eliminar el usuario, tiene propiedades asignadas.',
+      );
+    }
+    if (user.files.length > 0) {
+      throw new NotFoundException(
+        'No se puede eliminar el usuario, tiene archivos asignados.',
+      );
+    }
+
+    return await this.usersRepository.softRemove(user);
+  }
+
+  async verify(userId: number, modifiedById: number, createdBy?: number) {
+    const user = await this.usersRepository.findOne({
+      where: {
+        id: userId,
+        ...(createdBy && { createdBy: { id: createdBy } }),
+      },
+      relations: ['profile', 'files'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    let isAllFilesUploaded = true;
+    let isAllFilesVerified = true;
+    user.files.map((file) => {
+      if (!file.mediaId) {
+        isAllFilesUploaded = false;
+      }
+      if (!file.isVerified && file.isRequired) {
+        isAllFilesVerified = false;
+      }
+    });
+    if (!isAllFilesUploaded) {
+      throw new NotFoundException(
+        'Por favor adjunta todos los documentos obligatorios.',
+      );
+    }
+    if (!isAllFilesVerified) {
+      throw new NotFoundException(
+        'Es necesario verificar cada documento adjunto.',
+      );
+    }
+    if (
+      !user.profile.name ||
+      !user.profile.lastname ||
+      !user.profile.secondLastname ||
+      !user.profile.curp ||
+      !user.profile.email ||
+      !user.profile.mobile ||
+      !user.profile.rfc ||
+      !user.profile.address ||
+      !user.profile.personType
+    ) {
+      throw new NotFoundException(
+        'Por favor completa la información personal para verificar la cuenta.',
+      );
+    }
+    const modifiedBy = await this.usersRepository.findOneBy({
+      id: modifiedById,
+    });
+    user.isVerified = true;
+    user.modifiedBy = modifiedBy;
+    await this.usersRepository.save(user);
+    return await this.findOne(userId);
   }
 }

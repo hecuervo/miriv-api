@@ -1,5 +1,13 @@
 import { User } from 'src/users/entities/user.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class DocumentsCatalog {
@@ -9,13 +17,20 @@ export class DocumentsCatalog {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description: string;
+
   @Column({ type: 'varchar', length: 255 })
   fileType: string;
 
   @Column({ type: 'int', nullable: true })
   maxSize: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({
+    type: 'enum',
+    enum: ['AGENTE', 'ARRENDADOR', 'PROPIEDAD', 'FIADOR', 'ARRENDATARIO'],
+    nullable: true,
+  })
   section: string;
 
   @Column({ type: 'boolean', default: true })

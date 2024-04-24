@@ -1,8 +1,16 @@
-
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Profile {
+  constructor(private configService: ConfigService) {}
+
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -15,7 +23,7 @@ export class Profile {
   @Column({ type: 'varchar', length: 255, nullable: true })
   secondLastname: string;
 
-  @Column({ type: 'varchar', length: 18, unique: true })
+  @Column({ type: 'varchar', length: 18, unique: true, nullable: true })
   curp: string;
 
   @Column({ type: 'varchar', length: 13, nullable: true })
@@ -24,7 +32,11 @@ export class Profile {
   @Column({ type: 'varchar', length: 255, nullable: true })
   businessName: string;
 
-  @Column({ type: 'enum', enum: ['PERSONA FÍSICA', 'PERSONA MORAL'] })
+  @Column({
+    type: 'enum',
+    enum: ['PERSONA FÍSICA', 'PERSONA MORAL'],
+    nullable: true,
+  })
   personType: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
@@ -38,6 +50,13 @@ export class Profile {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   photo: string;
+
+  @Column({
+    type: 'enum',
+    enum: ['FIADOR', 'OBLIGADO SOLIDARIO'],
+    nullable: true,
+  })
+  typeGuarantor: string;
 
   @CreateDateColumn()
   createdAt: Date;

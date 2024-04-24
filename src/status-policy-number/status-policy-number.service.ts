@@ -8,16 +8,23 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class StatusPolicyNumberService {
-
   constructor(
     @InjectRepository(StatusPolicyNumber)
     private readonly repository: Repository<StatusPolicyNumber>,
-    private usersService: UsersService
-  ) { }
+    private usersService: UsersService,
+  ) {}
 
-  async create(createStatusPolicyNumberDto: CreateStatusPolicyNumberDto): Promise<StatusPolicyNumber> {
-    const user = await this.usersService.findOne(createStatusPolicyNumberDto.createdById);
-    return await this.repository.save({ ...createStatusPolicyNumberDto, createdBy: user, modifiedById: user });
+  async create(
+    createStatusPolicyNumberDto: CreateStatusPolicyNumberDto,
+  ): Promise<StatusPolicyNumber> {
+    const user = await this.usersService.findOne(
+      createStatusPolicyNumberDto.createdById,
+    );
+    return await this.repository.save({
+      ...createStatusPolicyNumberDto,
+      createdBy: user,
+      modifiedById: user,
+    });
   }
 
   async findAll(): Promise<StatusPolicyNumber[]> {
@@ -37,6 +44,10 @@ export class StatusPolicyNumberService {
         modifiedBy: true,
       },
     });
+  }
+
+  async findOneByOrden(orden: number): Promise<StatusPolicyNumber> {
+    return await this.repository.findOneBy({ orden });
   }
 
   async findOne(id: number): Promise<StatusPolicyNumber> {
@@ -61,8 +72,13 @@ export class StatusPolicyNumberService {
     });
   }
 
-  async update(id: number, updateStatusPolicyNumberDto: UpdateStatusPolicyNumberDto) {
-    const modifiedBy = await this.usersService.findOne(updateStatusPolicyNumberDto.modifiedById);
+  async update(
+    id: number,
+    updateStatusPolicyNumberDto: UpdateStatusPolicyNumberDto,
+  ) {
+    const modifiedBy = await this.usersService.findOne(
+      updateStatusPolicyNumberDto.modifiedById,
+    );
     const item = await this.repository.findOneBy({ id });
     if (!item) {
       throw new NotFoundException('Item with ID ${id} not found');

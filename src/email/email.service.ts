@@ -66,4 +66,36 @@ export class EmailService {
     };
     await this.sendGridClient.send(mail);
   }
+
+  async sendEmailPolicyCreatedOwner(
+    recipient: string,
+    name: string,
+    url: string,
+    policyNumber: string,
+  ): Promise<void> {
+    const mail: MailDataRequired = {
+      to: recipient,
+      from: this.configService.get('EMAIL_FROM'),
+      subject: `¡Tu póliza ha sido creada ${policyNumber}!`,
+      templateId: this.configService.get('EMAIL_TEMPLATE_POLICY_CREATED_OWNER'),
+      dynamicTemplateData: { name: name, url: url, policyNumber: policyNumber },
+    };
+    await this.sendGridClient.send(mail);
+  }
+
+  async sendEmailPolicyCreatedAgent(
+    recipient: string,
+    name: string,
+    url: string,
+    policyNumber: string,
+  ): Promise<void> {
+    const mail: MailDataRequired = {
+      to: recipient,
+      from: this.configService.get('EMAIL_FROM'),
+      subject: `¡Nueva póliza por validar ${policyNumber}!`,
+      templateId: this.configService.get('EMAIL_TEMPLATE_POLICY_CREATED_AGENT'),
+      dynamicTemplateData: { name: name, url: url, policyNumber: policyNumber },
+    };
+    await this.sendGridClient.send(mail);
+  }
 }

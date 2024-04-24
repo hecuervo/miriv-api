@@ -7,11 +7,17 @@ import {
   Param,
   Delete,
   Req,
+  Query,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from 'src/auth/roles/role.enum';
 
+@ApiTags('properties')
+@ApiBearerAuth()
 @Controller('properties')
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
@@ -22,17 +28,30 @@ export class PropertiesController {
     @Req() request: Request,
   ) {
     createPropertyDto.createdById = request['user'].sub;
+    if (request['user'].role === 'ARRENDADOR') {
+      createPropertyDto.ownerId = request['user'].sub;
+    }
     return this.propertiesService.create(createPropertyDto);
   }
 
   @Get()
-  findAll() {
-    return this.propertiesService.findAll();
+  findAll(@Req() request: Request, @Query('ownerId') ownerId: number) {
+    if (request['user'].role === 'ARRENDADOR') {
+      return this.propertiesService.findAll(request['user'].sub);
+    } else if (ownerId) {
+      return this.propertiesService.findAll(ownerId);
+    } else {
+      return this.propertiesService.findAll();
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.propertiesService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() request: Request) {
+    if (request['user'].role === 'ARRENDADOR') {
+      return this.propertiesService.findOne(+id, request['user'].sub);
+    } else {
+      return this.propertiesService.findOne(+id);
+    }
   }
 
   @Patch(':id')
@@ -41,12 +60,25 @@ export class PropertiesController {
     @Body() updatePropertyDto: UpdatePropertyDto,
     @Req() request: Request,
   ) {
-    updatePropertyDto.createdById = request['user'].sub;
+    updatePropertyDto.modifiedById = request['user'].sub;
     return this.propertiesService.update(+id, updatePropertyDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.propertiesService.remove(+id);
+  }
+
+  @Roles(Role.Admin, Role.Miriv, Role.StateAgent)
+  @Post('/verify-property')
+  verify(@Body() verify: Record<string, any>, @Req() req: Request) {
+    if (req['user'].role === Role.StateAgent) {
+      return this.propertiesService.verify(
+        verify.propertyId,
+        req['user'].sub,
+        req['user'].sub,
+      );
+    }
+    return this.propertiesService.verify(verify.propertyId, req['user'].sub);
   }
 }

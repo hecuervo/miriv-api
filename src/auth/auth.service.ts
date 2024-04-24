@@ -9,7 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { UserTokenService } from 'src/user-token/user-token.service';
 import { UserToken } from 'src/user-token/entities/user-token.entity';
 import { EmailService } from 'src/email/email.service';
-
+import { DocumentsEvent } from 'src/file-management/events/documents.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,6 +20,7 @@ export class AuthService {
     private configService: ConfigService,
     private emailService: EmailService,
     private tokenService: UserTokenService,
+    private eventEmitter: EventEmitter2,
   ) {}
   async signIn(username, password) {
     const user = await this.usersService.findOneByEmailMobile(username);
@@ -66,7 +68,9 @@ export class AuthService {
       password: hashedPassword,
       isActive: true,
       isEmailVerified: false,
+      isVerified: false,
       profileId: newProfile.id,
+      mainUserId: createProfileDto.mainUserId,
       createdById: createProfileDto.createdBy,
       modifiedById: createProfileDto.modifiedBy,
     };
@@ -82,10 +86,17 @@ export class AuthService {
       this.emailService.sendEmailWelcomeAgent(user.email, user.name, resetLink);
     } else if (
       user.role === 'ARRENDADOR' ||
-      user.role === 'FIADOR' ||
-      user.role === 'ARRENDATARIO'
+      user.role === 'ARRENDATARIO' ||
+      user.role === 'FIADOR'
     ) {
-      this.emailService.sendEmailCustomer(user.email, user.name, resetLink);
+      if (user.role !== 'FIADOR') {
+        this.emailService.sendEmailCustomer(user.email, user.name, resetLink);
+      }
+      const orderCreatedEvent = new DocumentsEvent();
+      orderCreatedEvent.type = user.role;
+      orderCreatedEvent.customerId = user.id;
+      orderCreatedEvent.userId = user.id;
+      this.eventEmitter.emit('create.document', orderCreatedEvent);
     }
 
     return {

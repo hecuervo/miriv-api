@@ -11,6 +11,7 @@ import { ProfileModule } from 'src/profile/profile.module';
 import { UserTokenModule } from 'src/user-token/user-token.module';
 import { StorageModule } from 'src/storage/storage.module';
 import { EmailModule } from 'src/email/email.module';
+import { RolesGuard } from './roles/role.guard';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { EmailModule } from 'src/email/email.module';
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '12h' },
     }),
     TypeOrmModule.forFeature([User]),
   ],
@@ -32,8 +33,12 @@ import { EmailModule } from 'src/email/email.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
-    AuthService
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    AuthService,
   ],
-  exports: [AuthService]
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

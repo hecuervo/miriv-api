@@ -1,8 +1,10 @@
+import { FileManagement } from 'src/file-management/entities/file-management.entity';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Property } from 'src/properties/entities/property.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -40,6 +42,9 @@ export class User {
   isActive: boolean;
 
   @Column({ type: 'boolean', default: false, nullable: true })
+  isVerified: boolean;
+
+  @Column({ type: 'boolean', default: false, nullable: true })
   isEmailVerified: boolean;
 
   @Column({ type: 'timestamp', nullable: true })
@@ -57,12 +62,22 @@ export class User {
 
   @ManyToOne(() => User)
   @JoinColumn()
+  mainUser: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn()
   createdBy: User;
 
   @ManyToOne(() => User)
   @JoinColumn()
   modifiedBy: User;
 
+  @DeleteDateColumn()
+  deletedAt: Date;
+
   @OneToMany(() => Property, (property) => property.owner)
   properties: Property[];
+
+  @OneToMany(() => FileManagement, (file) => file.customer)
+  files: FileManagement[];
 }

@@ -8,17 +8,26 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class DocumentsCatalogService {
-
-
   constructor(
     @InjectRepository(DocumentsCatalog)
     private readonly repository: Repository<DocumentsCatalog>,
-    private usersService: UsersService
-  ) { }
+    private usersService: UsersService,
+  ) {}
 
-  async create(createDocumentsCatalogDto: CreateDocumentsCatalogDto): Promise<DocumentsCatalog> {
-    const user = await this.usersService.findOne(createDocumentsCatalogDto.createdById);
-    return await this.repository.save({ ...createDocumentsCatalogDto, createdBy: user, modifiedById: user });
+  async create(
+    createDocumentsCatalogDto: CreateDocumentsCatalogDto,
+  ): Promise<DocumentsCatalog> {
+    const user = await this.usersService.findOne(
+      createDocumentsCatalogDto.createdById,
+    );
+    createDocumentsCatalogDto.name = createDocumentsCatalogDto.description
+      .replace(/[^\w\s]/g, '')
+      .replace(/\s+/g, '_');
+    return await this.repository.save({
+      ...createDocumentsCatalogDto,
+      createdBy: user,
+      modifiedById: user,
+    });
   }
 
   async findAll(): Promise<DocumentsCatalog[]> {
@@ -37,7 +46,30 @@ export class DocumentsCatalogService {
         createdBy: true,
         modifiedBy: true,
       },
-      order: { section: 'ASC', name: 'ASC' }
+      order: { section: 'ASC', name: 'ASC' },
+    });
+  }
+
+  async findAllBySection(section: string): Promise<DocumentsCatalog[]> {
+    return await this.repository.find({
+      where: {
+        section,
+      },
+      select: {
+        createdBy: {
+          id: true,
+          name: true,
+        },
+        modifiedBy: {
+          id: true,
+          name: true,
+        },
+      },
+      relations: {
+        createdBy: true,
+        modifiedBy: true,
+      },
+      order: { section: 'ASC', name: 'ASC' },
     });
   }
 
@@ -63,8 +95,13 @@ export class DocumentsCatalogService {
     });
   }
 
-  async update(id: number, updateDocumentsCatalogDto: UpdateDocumentsCatalogDto): Promise<DocumentsCatalog> {
-    const modifiedBy = await this.usersService.findOne(updateDocumentsCatalogDto.modifiedById);
+  async update(
+    id: number,
+    updateDocumentsCatalogDto: UpdateDocumentsCatalogDto,
+  ): Promise<DocumentsCatalog> {
+    const modifiedBy = await this.usersService.findOne(
+      updateDocumentsCatalogDto.modifiedById,
+    );
     const item = await this.repository.findOneBy({ id });
     if (!item) {
       throw new NotFoundException('Item with ID ${id} not found');
@@ -75,10 +112,10 @@ export class DocumentsCatalogService {
   }
 
   async remove(id: number) {
-    const user = await this.repository.findOneBy({ id });
-    if (!user) {
+    const item = await this.repository.findOneBy({ id });
+    if (!item) {
       throw new NotFoundException(`Item with ID ${id} not found`);
     }
-    return await this.repository.remove(user);
+    return await this.repository.remove(item);
   }
 }

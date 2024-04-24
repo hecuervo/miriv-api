@@ -12,6 +12,9 @@ import {
 } from 'class-validator';
 import { IsUnique } from 'src/auth/is-unique-constraint';
 export class CreateProfileDto {
+  @IsInt()
+  @IsOptional()
+  currentId?: string;
 
   @IsString()
   @MinLength(2)
@@ -29,8 +32,7 @@ export class CreateProfileDto {
 
   @IsString()
   @IsUnique({ tableName: 'profile', column: 'curp' })
-  @MinLength(18)
-  @IsNotEmpty()
+  @IsOptional()
   curp: string;
 
   @IsString()
@@ -42,6 +44,7 @@ export class CreateProfileDto {
   businessName: string;
 
   @IsEnum(['PERSONA FÍSICA', 'PERSONA MORAL'])
+  @IsOptional()
   personType: string;
 
   @IsString()
@@ -55,7 +58,11 @@ export class CreateProfileDto {
   email: string;
 
   @IsString()
-  @IsUnique({ tableName: 'profile', column: 'mobile', message: 'celular ya existe' })
+  @IsUnique({
+    tableName: 'profile',
+    column: 'mobile',
+    message: 'celular ya existe',
+  })
   @IsNotEmpty()
   @Matches(/^[0-9]{10}$/, {
     message: 'Mobile number invalid',
@@ -63,15 +70,27 @@ export class CreateProfileDto {
   mobile: string;
 
   @IsEnum(['ADMIN', 'AGENTE', 'MIRIV', 'ARRENDADOR', 'FIADOR', 'ARRENDATARIO'])
-  role: string = 'AGENTE';
+  role: string;
 
   @IsString()
   @IsOptional()
   photo: string;
 
+  @IsEnum(['FIADOR', 'OBLIGADO SOLIDARIO'])
+  @IsOptional()
+  typeGuarantor: string;
+
   @IsBoolean()
   @IsOptional()
   isActive: boolean = true;
+
+  @IsBoolean()
+  @IsOptional()
+  isVerified: boolean = false;
+
+  @IsInt()
+  @IsOptional()
+  mainUserId: number;
 
   @IsInt()
   @IsOptional()

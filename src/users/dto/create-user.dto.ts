@@ -8,26 +8,21 @@ import {
   IsOptional,
   IsString,
   Matches,
-  MinLength
+  MinLength,
 } from 'class-validator';
-import { IsUnique } from 'src/auth/is-unique-constraint';
 
 export class CreateUserDto {
-
-
   @IsString()
   @MinLength(2)
   @IsNotEmpty()
   name: string;
 
   @Transform(({ value }) => value.toLowerCase().trim())
-  @IsUnique({ tableName: 'user', column: 'email' })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
   @IsString()
-  @IsUnique({ tableName: 'user', column: 'mobile' })
   @IsNotEmpty()
   @Matches(/^[0-9]{10}$/, {
     message: 'Invalid phone number',
@@ -49,9 +44,17 @@ export class CreateUserDto {
   @IsOptional()
   isEmailVerified: boolean;
 
+  @IsBoolean()
+  @IsOptional()
+  isVerified: boolean;
+
   @IsInt()
   @IsNotEmpty()
   profileId: number;
+
+  @IsInt()
+  @IsOptional()
+  mainUserId: number;
 
   @IsInt()
   @IsOptional()

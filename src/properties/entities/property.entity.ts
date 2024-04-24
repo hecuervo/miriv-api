@@ -1,11 +1,16 @@
+import { FileManagement } from 'src/file-management/entities/file-management.entity';
 import { PropertyCategory } from 'src/property-categories/entities/property-category.entity';
+import { PropertyPhoto } from 'src/property-photos/entities/property-photo.entity';
+import { Sepomex } from 'src/sepomex/entities/sepomex.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,8 +19,24 @@ export class Property {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'text' })
-  address: string;
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  street: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  numberInt: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  numberExt: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  coverImage: string;
+
+  @ManyToOne(() => Sepomex)
+  @JoinColumn()
+  sepomex: Sepomex;
 
   @ManyToOne(() => PropertyCategory)
   @JoinColumn()
@@ -34,8 +55,14 @@ export class Property {
   @Column({ type: 'text', nullable: true })
   linkMap: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: 'boolean', default: false })
   isActive: boolean;
+
+  @Column({ type: 'boolean', default: false, nullable: true })
+  isGuarantee: boolean;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -50,4 +77,10 @@ export class Property {
   @ManyToOne(() => User)
   @JoinColumn()
   modifiedBy: User;
+
+  @OneToMany(() => FileManagement, (file) => file.property)
+  files: FileManagement[];
+
+  @OneToMany(() => PropertyPhoto, (photo) => photo.property)
+  photos: PropertyPhoto[];
 }

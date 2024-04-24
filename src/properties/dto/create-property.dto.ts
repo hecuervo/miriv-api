@@ -5,17 +5,38 @@ import {
   IsString,
   IsInt,
 } from 'class-validator';
+
 export class CreatePropertyDto {
   @IsString()
   @IsNotEmpty()
-  address: string;
+  name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street: string;
+
+  @IsString()
+  @IsOptional()
+  numberInt: string;
+
+  @IsString()
+  @IsOptional()
+  numberExt: string;
+
+  @IsString()
+  @IsOptional()
+  coverImage: string;
+
+  @IsInt()
+  @IsNotEmpty()
+  sepomexId: number;
 
   @IsInt()
   @IsNotEmpty()
   categoryId: number;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   ownerId: number;
 
   @IsString()
@@ -32,7 +53,11 @@ export class CreatePropertyDto {
 
   @IsBoolean()
   @IsOptional()
-  isActive: boolean;
+  isActive: boolean = false;
+
+  @IsBoolean()
+  @IsOptional()
+  isGuarantee: boolean = false;
 
   @IsInt()
   @IsOptional()

@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
@@ -6,6 +6,9 @@ import { format, transports } from 'winston';
 import 'winston-daily-rotate-file';
 import { ConfigService } from '@nestjs/config';
 import { useContainer } from 'class-validator';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as Sentry from '@sentry/node';
+import { SentryFilter } from './sentry/sentry.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -44,17 +47,35 @@ async function bootstrap() {
       ],
     }),
   });
+  const config = new DocumentBuilder()
+    .setTitle('Api Miriv')
+    .setDescription('Miriv API description')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
   // app use global to automaticly validate requests
   app.useGlobalPipes(
     new ValidationPipe({
+      transform: true,
       whitelist: true,
     }),
   );
+
   // wrap AppModule with UseContainer
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('port');
+
+  // Sentry
+  Sentry.init({
+    dsn: app.get(ConfigService).get('SENTRY_DSN'),
+  });
+  const { httpAdapter } = app.get(HttpAdapterHost);
+  app.useGlobalFilters(new SentryFilter(httpAdapter));
+
   await app.listen(port);
 }
 bootstrap();

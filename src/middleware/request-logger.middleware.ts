@@ -6,14 +6,13 @@ export class RequestLoggerMiddleware implements NestMiddleware {
   private readonly logger = new Logger();
 
   use(req: Request, res: Response, next: NextFunction) {
-
     const now = Date.now();
     res.on('finish', () => {
       const statusCode = res.statusCode;
 
       const logMessage =
         `METHOD - ${req.method} | URL - ${req.url} | ` +
-        (`QUERY - ${JSON.stringify(req.query)} | PARAMS - ${JSON.stringify(req.params)} | BODY - ${JSON.stringify(req.body)} `) +
+        `QUERY - ${JSON.stringify(req.query)} | PARAMS - ${JSON.stringify(req.params)} ` +
         `${this.getColorizedStatusCode(res.statusCode)} ${Date.now() - now} ms`;
       this.logger.log(logMessage);
 
