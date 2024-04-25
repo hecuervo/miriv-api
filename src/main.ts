@@ -14,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
     cors: true,
-    /*logger: WinstonModule.createLogger({
+    logger: WinstonModule.createLogger({
       transports: [
         // file on daily rotation (error only)
         new transports.DailyRotateFile({
@@ -45,7 +45,7 @@ async function bootstrap() {
           ),
         }),
       ],
-    }),*/
+    }),
   });
   const config = new DocumentBuilder()
     .setTitle('Api Miriv')

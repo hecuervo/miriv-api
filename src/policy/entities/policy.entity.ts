@@ -1,13 +1,14 @@
+import { PolicyHistory } from 'src/policy-history/entities/policy-history.entity';
 import { Property } from 'src/properties/entities/property.entity';
 import { StatusPolicyNumber } from 'src/status-policy-number/entities/status-policy-number.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
-  BeforeInsert,
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -16,8 +17,8 @@ export class Policy {
   @PrimaryGeneratedColumn({})
   id: number;
 
-  @Column({ type: 'int', default: 0 })
-  lastNumber: number = 0;
+  @Column({ generated: 'increment', type: 'int' })
+  lastNumber: number;
 
   @Column({ type: 'varchar', length: 255, unique: true })
   name?: string;
@@ -74,13 +75,6 @@ export class Policy {
   @JoinColumn()
   modifiedBy: User;
 
-  @BeforeInsert()
-  async generateNameBeforeInsert() {
-    this.lastNumber += 1;
-    this.name = `F-${this.lastNumber.toString().padStart(7, '0')}`;
-    console.log(
-      'before insert  - generateNameBeforeInsert - this.name:',
-      this.name,
-    );
-  }
+  @OneToMany(() => PolicyHistory, (PolicyHistory) => PolicyHistory.policy)
+  policyHistories: PolicyHistory[];
 }

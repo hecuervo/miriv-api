@@ -35,13 +35,17 @@ export class PropertiesController {
   }
 
   @Get()
-  findAll(@Req() request: Request, @Query('ownerId') ownerId: number) {
+  findAll(
+    @Req() request: Request,
+    @Query('ownerId') ownerId: number,
+    @Query('isGuarantee') isGuarantee: boolean,
+  ) {
     if (request['user'].role === 'ARRENDADOR') {
-      return this.propertiesService.findAll(request['user'].sub);
+      return this.propertiesService.findAll(request['user'].sub, isGuarantee);
     } else if (ownerId) {
-      return this.propertiesService.findAll(ownerId);
+      return this.propertiesService.findAll(ownerId, isGuarantee);
     } else {
-      return this.propertiesService.findAll();
+      return this.propertiesService.findAll(null, isGuarantee);
     }
   }
 

@@ -43,6 +43,9 @@ export class StatusPolicyNumberService {
         createdBy: true,
         modifiedBy: true,
       },
+      order: {
+        orden: 'ASC',
+      },
     });
   }
 

@@ -58,4 +58,20 @@ export class PolicyController {
   remove(@Param('id') id: string) {
     return this.policyService.remove(+id);
   }
+
+  @Roles(Role.Admin, Role.Miriv, Role.StateAgent)
+  @Post('send-reminder-to-complete')
+  sendReminderToCompletePolicy(@Body() data: Record<string, any>) {
+    return this.policyService.sendReminderToCompletePolicy(data.id);
+  }
+
+  @Roles(Role.Admin, Role.Miriv, Role.StateAgent)
+  @Post('change-status')
+  changeStatus(@Body() data: Record<string, any>, @Req() req: Request) {
+    return this.policyService.changeStatus(
+      data.id,
+      data.nextStatusId,
+      req['user'].sub,
+    );
+  }
 }

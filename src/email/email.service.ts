@@ -67,7 +67,7 @@ export class EmailService {
     await this.sendGridClient.send(mail);
   }
 
-  async sendEmailPolicyCreatedOwner(
+  async sendEmailPolicyReminderToCompleteOwner(
     recipient: string,
     name: string,
     url: string,
@@ -77,13 +77,13 @@ export class EmailService {
       to: recipient,
       from: this.configService.get('EMAIL_FROM'),
       subject: `¡Tu póliza ha sido creada ${policyNumber}!`,
-      templateId: this.configService.get('EMAIL_TEMPLATE_POLICY_CREATED_OWNER'),
+      templateId: this.configService.get('EMAIL_TEMPLATE_REMINDER_OWNER'),
       dynamicTemplateData: { name: name, url: url, policyNumber: policyNumber },
     };
     await this.sendGridClient.send(mail);
   }
 
-  async sendEmailPolicyCreatedAgent(
+  async sendEmailPolicyReminderToCompleteTenant(
     recipient: string,
     name: string,
     url: string,
@@ -93,8 +93,33 @@ export class EmailService {
       to: recipient,
       from: this.configService.get('EMAIL_FROM'),
       subject: `¡Nueva póliza por validar ${policyNumber}!`,
-      templateId: this.configService.get('EMAIL_TEMPLATE_POLICY_CREATED_AGENT'),
+      templateId: this.configService.get('EMAIL_TEMPLATE_REMINDER_TENANT'),
       dynamicTemplateData: { name: name, url: url, policyNumber: policyNumber },
+    };
+    await this.sendGridClient.send(mail);
+  }
+
+  async sendEmailPolicyActivated(
+    recipient: string,
+    name: string,
+    url: string,
+    policyNumber: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<void> {
+    const mail: MailDataRequired = {
+      to: recipient,
+      from: this.configService.get('EMAIL_FROM'),
+      subject: `¡Tu póliza se encuentra vigente ${policyNumber}!`,
+      templateId: this.configService.get('EMAIL_TEMPLATE_POLICY_ACTIVATED'),
+      attachments: [],
+      dynamicTemplateData: {
+        name: name,
+        url: url,
+        policyNumber: policyNumber,
+        startDate: startDate,
+        endDate: endDate,
+      },
     };
     await this.sendGridClient.send(mail);
   }

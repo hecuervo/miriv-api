@@ -1,4 +1,5 @@
 import { FileManagement } from 'src/file-management/entities/file-management.entity';
+import { Policy } from 'src/policy/entities/policy.entity';
 import { PropertyCategory } from 'src/property-categories/entities/property-category.entity';
 import { PropertyPhoto } from 'src/property-photos/entities/property-photo.entity';
 import { Sepomex } from 'src/sepomex/entities/sepomex.entity';
@@ -11,6 +12,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -83,4 +85,7 @@ export class Property {
 
   @OneToMany(() => PropertyPhoto, (photo) => photo.property)
   photos: PropertyPhoto[];
+
+  @OneToOne(() => Policy, (policy) => policy.property)
+  policy: Policy;
 }

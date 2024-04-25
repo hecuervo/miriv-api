@@ -52,10 +52,11 @@ export class PropertiesService {
     return this.findOne(property.id);
   }
 
-  async findAll(ownerId?: number): Promise<Property[]> {
+  async findAll(ownerId?: number, isGuarantee?: boolean): Promise<Property[]> {
     return await this.repository.find({
       where: {
         ...(ownerId && { owner: { id: ownerId } }),
+        ...(!isGuarantee && { isGuarantee: isGuarantee }),
       },
       select: {
         createdBy: {
@@ -78,6 +79,11 @@ export class PropertiesService {
           mediaId: true,
           isFavorite: true,
         },
+        policy: {
+          id: true,
+          name: true,
+          endDate: true,
+        },
       },
       relations: {
         createdBy: true,
@@ -86,6 +92,7 @@ export class PropertiesService {
         sepomex: true,
         owner: true,
         photos: true,
+        policy: true,
       },
     });
   }
