@@ -54,10 +54,10 @@ export class StorageService {
   }
 
   async delete(path: string) {
-    await this.storage
+    /*await this.storage
       .bucket(this.bucket)
       .file(path)
-      .delete({ ignoreNotFound: true });
+      .delete({ ignoreNotFound: true });*/
   }
 
   async get(path: string): Promise<StorageFile> {

@@ -24,7 +24,7 @@ export class Property {
   @Column({ type: 'varchar', length: 255 })
   name: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   street: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

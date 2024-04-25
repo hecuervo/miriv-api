@@ -12,7 +12,7 @@ export class CreatePropertyDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   street: string;
 
   @IsString()
@@ -28,11 +28,11 @@ export class CreatePropertyDto {
   coverImage: string;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   sepomexId: number;
 
   @IsInt()
-  @IsNotEmpty()
+  @IsOptional()
   categoryId: number;
 
   @IsInt()

@@ -56,7 +56,7 @@ export class MediaController {
       throw new NotFoundException('file not found');
     }
     if (oldMediaId) {
-      await this.storageService.delete(folder + '/' + oldMediaId);
+      //await this.storageService.delete(folder + '/' + oldMediaId);
     }
 
     const filename =
